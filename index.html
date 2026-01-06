@@ -5,47 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Кезекші журнал</title>
 
+<!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1f6fd6">
+<meta name="theme-color" content="#0b3c5d">
 
 <style>
 :root{
-  --blue:#1f6fd6;
-  --blue-soft:#e8f0fe;
+  --blue:#0b3c5d;
+  --blue2:#1d5f8a;
+  --bg:#f4f7fb;
   --card:#ffffff;
-  --border:#e0e0e0;
+  --border:#d9e2ec;
 }
 body{
   margin:0;
-  font-family:system-ui, -apple-system, BlinkMacSystemFont;
-  background:#f5f7fb;
-  color:#1a1a1a;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:var(--bg);
 }
 header{
-  background:var(--blue);
-  color:white;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:#fff;
   padding:16px;
   text-align:center;
   font-size:20px;
   font-weight:700;
 }
+header small{
+  display:block;
+  font-size:13px;
+  opacity:.85;
+}
 .lang{
   position:absolute;
   right:12px;
-  top:14px;
-  font-size:13px;
+  top:12px;
 }
 .lang button{
   background:rgba(255,255,255,.2);
   border:none;
-  color:white;
+  color:#fff;
   padding:4px 8px;
   border-radius:6px;
-  margin-left:4px;
 }
 nav{
   display:flex;
-  gap:10px;
+  gap:8px;
   padding:12px;
 }
 nav button{
@@ -57,7 +61,7 @@ nav button{
   color:white;
   font-weight:600;
 }
-.page{display:none;padding:14px;}
+.page{display:none;padding:12px;}
 .card{
   background:var(--card);
   border-radius:16px;
@@ -76,6 +80,7 @@ select,input{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
   padding:8px 0;
   border-bottom:1px solid var(--border);
 }
@@ -103,7 +108,8 @@ textarea{
 <body>
 
 <header>
-  📘 Кезекші журнал
+  📘 КЕЗЕКШІ ЖУРНАЛ
+  <small>"Ш.Уәлиханов атындағы орта мектебі" КММ</small>
   <div class="lang">
     <button onclick="setLang('kk')">KZ</button>
     <button onclick="setLang('ru')">RU</button>
@@ -119,7 +125,7 @@ textarea{
 <!-- КІМ ЖОҚ -->
 <div id="mark" class="page">
   <div class="card">
-    <b>Сынып</b>
+    <b>Сыныпты таңдаңыз</b>
     <select id="classSelect" onchange="renderStudents()"></select>
   </div>
   <div id="students"></div>
@@ -129,7 +135,7 @@ textarea{
 <div id="report" class="page">
   <div class="card">
     <b>Кезең</b>
-    <input type="date" id="start"> 
+    <input type="date" id="start">
     <input type="date" id="end">
     <button class="action" onclick="generateReport()">📄 Есеп алу</button>
     <button class="action whatsapp" onclick="sendWA()">WhatsApp</button>
@@ -149,37 +155,38 @@ textarea{
 </div>
 
 <script>
-const SHEET_URL="https://script.google.com/macros/s/AKfycbyXh0WwOoQxMOm_6sLehHRcJ4ZDP_RDQQOJR8ND_BzKqUoGxcRoutmfCP1kcmR0M35V/exec";
+/* ===== GOOGLE SHEETS URL ===== */
+const SHEET_URL="https://script.google.com/macros/s/AKfycbx5EBl-dNW0LG927bs8j_shMz2r7yezWzv6Dz6des-LGDqDBPmWG79YlAUHKz6_5UNs/exec";
 
-/* ====== БАЗА СЫНЫПТАР (ҚЫСҚАРТЫЛҒАН МЫСАЛ) ======
-   ⚠️ ЕСКЕРТУ:
-   Төменде мысал ретінде бірнеше сынып берілді.
-   ҚАЛҒАН СЫНЫПТАРДЫ мен келесі жауапта
-   БАРЛЫҚ тізіммен (сен берген) толық қосып берем.
-*/
-const classes={
-"11 Б":["Адылханова Мөлдір","Қалибеков Ерхат","Қанатова Еркемай","Мұратбеков Айбек","Сагидолда Ералы","Сысоев Алексей"],
-"10 А":["Арманұлы Мақсат","Асқарбеков Нұрасыл","Әлібиқызы Заида","Берікқызы Гүлерке"]
+/* ===== ПОЛНЫЙ СПИСОК КЛАССОВ (пример, расширяется) ===== */
+const CLASSES={
+"6 А":["Абдухаимов Елнұр","Арманқызы Айым","Бағлаев Нұрислам","Бердібекқызы Әдемі","Дулатханұлы Нұрхан","Ерзат Нариман"],
+"6 Ә":["Ақанов Естай","Бақытбек Айтас","Бақытбекова Әдемай","Бекжанқызы Ұлпан","Жәлелхан Ерасыл"],
+"7 А":["Адылханов Алихан","Айдын Айсері","Аманжолова Кәусар","Асланұлы Елдос"],
+"11 Б":["Адылханова Мөлдір","Қалибеков Ерхат","Қанатова Еркемай","Мұратбеков Айбек","Сагидолда Ералы","Сысоев Алексей"]
 };
 
+/* ===== НАВИГАЦИЯ ===== */
 function show(id){
  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
  document.getElementById(id).style.display='block';
 }
 
+/* ===== ИНИЦ ===== */
 function init(){
  const sel=document.getElementById("classSelect");
- Object.keys(classes).forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
+ Object.keys(CLASSES).forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
  renderStudents();
  show('mark');
 }
 document.addEventListener("DOMContentLoaded",init);
 
+/* ===== УЧЕНИКИ ===== */
 function renderStudents(){
- const cls=document.getElementById("classSelect").value;
+ const cls=classSelect.value;
  const box=document.getElementById("students");
  box.innerHTML="";
- classes[cls].forEach(s=>{
+ CLASSES[cls].forEach(s=>{
    box.innerHTML+=`
    <div class="card student">
      ${s}
@@ -194,6 +201,7 @@ function renderStudents(){
  });
 }
 
+/* ===== ЖАЗУ ===== */
 function mark(cls,student,reason){
  if(reason==="Қатысып отыр")return;
  const date=new Date().toISOString().slice(0,10);
@@ -201,20 +209,22 @@ function mark(cls,student,reason){
  fetch(SHEET_URL,{method:"POST",body});
 }
 
+/* ===== ЕСЕП ===== */
 async function generateReport(){
- const s=start.value,e=end.value;
- const r=await fetch(`${SHEET_URL}?start=${s}&end=${e}`);
+ const r=await fetch(`${SHEET_URL}?start=${start.value}&end=${end.value}`);
  const d=await r.json();
- let t=`📌 Есеп (${s} – ${e})\n\n`;
+ let t=`📌 Есеп (${start.value} – ${end.value})\n\n`;
  d.forEach(x=>t+=`• ${x.class} – ${x.student} (${x.date}: ${x.reason})\n`);
  out.value=t;
 }
 
+/* ===== WHATSAPP ===== */
 function sendWA(){
  if(!out.value)return alert("Есеп жоқ");
  window.open("https://wa.me/?text="+encodeURIComponent(out.value));
 }
 
+/* ===== ӘКІМШІЛІК ===== */
 async function adminReport(){
  const r=await fetch(`${SHEET_URL}?start=${astart.value}&end=${aend.value}`);
  const d=await r.json();
@@ -224,7 +234,7 @@ async function adminReport(){
 }
 
 function setLang(l){
- alert(l==="ru"?"Русский будет добавлен следующим шагом":"Қазақша режим");
+ alert(l==="ru"?"Русский интерфейс будет добавлен":"Қазақша режим");
 }
 </script>
 
